@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Предпросмотр шаблона | Leaderweb</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --main-color: #d51328; 
+            --main-color-darken: #b01022; 
+            --brad-regular: 0.5vw;
+            --bg-viewer: #f4f4f7; 
+        }
+
+        body, html { 
+            margin: 0; padding: 0; height: 100%; overflow: hidden; 
+            font-family: 'Jost', sans-serif; background-color: var(--bg-viewer); 
+        }
+
+        /* --- ПАНЕЛЬ УПРАВЛЕНИЯ --- */
+        .demo-bar {
+            height: 5.5vw;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2vw;
+            box-shadow: 0 0.1vw 0.5vw rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 1000;
+        }
+
+        .bar-left { font-size: 1.2vw; font-weight: 600; color: var(--main-color); letter-spacing: -0.01vw; }
+        .bar-left a { text-decoration: none; color: inherit; }
+        
+        .device-selector { 
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex; 
+            gap: 1vw; 
+        }
+        
+        .device-btn {
+            background: transparent;
+            border: 0.1vw solid #eee;
+            cursor: pointer;
+            padding: 0.8vw;
+            border-radius: var(--brad-regular);
+            color: #b0b0b0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s ease;
+        }
+        
+        .device-btn svg { width: 2.2vw; height: 2.2vw; fill: currentColor; }
+        .device-btn:hover { color: var(--main-color); border-color: var(--main-color); }
+        .device-btn.active { background-color: var(--main-color); color: #ffffff; border-color: var(--main-color-darken); }
+
+        .open-direct-btn {
+            text-decoration: none;
+            background: #ffffff;
+            color: var(--main-color);
+            padding: 0.8vw 1.8vw;
+            border-radius: var(--brad-regular);
+            font-size: 0.9vw;
+            font-weight: 600;
+            transition: 0.3s;
+            border: 0.1vw solid var(--main-color);
+            box-shadow: 0 0.2vw 0.5vw rgba(0,0,0,0.05);
+        }
+        .open-direct-btn:hover { background: var(--main-color); color: #fff; }
+
+        /* --- ТЕКСТ НАД ФРЕЙМОМ --- */
+        .mode-indicator {
+            text-align: center;
+            font-size: 1.1vw;
+            font-weight: 400;
+            color: #333;
+            margin-bottom: 0.8vw;
+            transition: opacity 0.3s;
+        }
+
+        /* --- КОНТЕЙНЕР --- */
+        .iframe-wrapper {
+            width: 100%;
+            height: calc(100vh - 5.5vw); 
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            background-color: var(--bg-viewer);
+            padding: 1vw;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .frame-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe { 
+            background: #ffffff; 
+            transition: width 0.5s ease, height 0.5s ease;
+            border: 0.4vw solid #fff; 
+            border-radius: var(--brad-regular);
+            box-shadow: 0 1vw 4vw rgba(0,0,0,0.08);
+            box-sizing: border-box;
+            z-index: 1;
+        }
+
+        /* РЕЖИМЫ ШИРИНЫ */
+        .iframe-wrapper.desktop iframe { width: 86vw; height: 100%; }
+        .iframe-wrapper.tablet iframe { width: 890px; height: 100%; }
+        .iframe-wrapper.mobile iframe { width: 425px; height: 100%; }
+
+        /* --- ЛОАДЕР --- */
+        #loader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-viewer);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 3vw; height: 3vw;
+            border: 0.3vw solid rgba(213, 19, 40, 0.1);
+            border-top-color: var(--main-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Скрытие лоадера */
+        body.loaded #loader { opacity: 0; pointer-events: none; }
+
+        @media (max-width: 768px) {
+            .demo-bar, .mode-indicator, #loader { display: none !important; }
+            .iframe-wrapper { height: 100vh; padding: 0; }
+            iframe { border: none; width: 100vw !important; height: 100vh !important; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="demo-bar">
+        <div class="bar-left">
+            <a href="#">Шаблон полностью адаптивный под все устройства</a>
+        </div>
+
+        <div class="device-selector">
+            <button class="device-btn active" onclick="setMode('desktop', this, 'Десктопная версия')" title="Десктопная версия'">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12z"/></svg>
+            </button>
+            <button class="device-btn" onclick="setMode('tablet', this, 'Планшетная версия')" title="Планшетная версия">
+                <svg viewBox="0 0 24 24"><path d="M19 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm7-4H5V4h14v13z"/></svg>
+            </button>
+            <button class="device-btn" onclick="setMode('mobile', this, 'Мобильная версия')" title="Мобильная версия">
+                <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+            </button>
+        </div>
+
+        <!-- <div class="bar-right">
+            <a href="https://demo4.alex-dein.ru/" target="_blank" class="open-direct-btn">
+                Открыть сайт в полном окне
+            </a>
+        </div> -->
+    </div>
+
+    <div class="iframe-wrapper desktop" id="wrapper">
+        <div class="mode-indicator" id="mode-text">Десктопная версия</div>
+        
+        <div class="frame-container">
+            <div id="loader">
+                <div class="spinner"></div>
+                <div style="margin-top:1vw; font-size:0.9vw; color:#999; letter-spacing:0.1vw;">Идет подгрузка демо-сайта...</div>
+            </div>
+            <iframe src="https://koledaschool.by/" id="site-frame" frameborder="0" onload="finishLoading()"></iframe>
+        </div>
+    </div>
+
+    <script>
+        function setMode(mode, btn, text) {
+            document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('wrapper').className = 'iframe-wrapper ' + mode;
+            
+            const textElement = document.getElementById('mode-text');
+            textElement.style.opacity = 0;
+            setTimeout(() => {
+                textElement.innerText = text;
+                textElement.style.opacity = 1;
+            }, 200);
+        }
+
+        function finishLoading() {
+            document.body.classList.add('loaded');
+        }
+
+        // Страховка: если сайт долго грузится, убираем лоадер через 3 сек
+        setTimeout(finishLoading, 3000);
+    </script>
+</body>
+</html>
